@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Desactivar listado de directorios
+Options -Indexes
+
+# Si el archivo o directorio existe, servirlo normalmente
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirigir todas las peticiones al Front Controller
+RewriteRule ^ public/index.php [QSA,L]
