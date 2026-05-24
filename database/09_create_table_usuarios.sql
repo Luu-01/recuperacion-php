@@ -1,0 +1,9 @@
+CREATE DATABASE IF NOT EXISTS 25_dwes_php_ud4_tienda;
+USE 25_dwes_php_ud4_tienda;
+
+CREATE TABLE usuarios (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    correo VARCHAR(150) NOT NULL UNIQUE,
+    clave VARCHAR(255) NOT NULL
+);
