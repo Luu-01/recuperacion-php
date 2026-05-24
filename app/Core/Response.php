@@ -46,15 +46,17 @@ class Response
 
     public function redirect(string $url, int $status = 302): self
     {
-        // 1. URLs externas absolutas (http o https)
+        // URLs externas absolutas: se respetan tal cual.
         if (preg_match('#^https?://#i', $url)) {
             $this->redirectTo = $url;
         }
-        // 2. URLs internas (absolutas o relativas)
+        // URLs internas ya generadas con url(): no se vuelve a añadir BASE_URL.
+        elseif (str_starts_with($url, BASE_URL . '/') || $url === BASE_URL) {
+            $this->redirectTo = $url;
+        }
+        // URLs internas relativas: se les añade BASE_URL una sola vez.
         else {
-            // BASE_URL termina en '/', por lo que eliminamos la barra inicial si existe
-            $internal = ltrim($url, '/');
-            $this->redirectTo = BASE_URL . $internal;
+            $this->redirectTo = BASE_URL . '/' . ltrim($url, '/');
         }
 
         $this->status = $status;
