@@ -7,8 +7,9 @@ use App\Core\Session;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\MessageBag;
+use App\Core\Routing\Router;
 
-/* ===== Core: Request, Session y Response ===== */
+/* ===== Core: Request, Session, Response y Router ===== */
 
 function request(): Request
 {
@@ -26,6 +27,12 @@ function response(): Response
 {
     static $instance = null;
     return $instance ??= new Response();
+}
+
+function router(): Router
+{
+    static $instance = null;
+    return $instance ??= new Router();
 }
 
 /* ===== Vistas ===== */
@@ -53,9 +60,20 @@ function view(string $view, array $data = [], string $layout = 'layouts/app'): v
 
 /* ===== Navegación ===== */
 
-function url(string $path): string
+function url(string $path, array $params = []): string
 {
-    return BASE_URL . ltrim($path, '/');
+    $url = BASE_URL . '/' . ltrim($path, '/');
+
+    if (!empty($params)) {
+        $url .= '?' . http_build_query($params);
+    }
+
+    return $url;
+}
+
+function asset(string $path): string
+{
+    return PUBLIC_URL . '/' . ltrim($path, '/');
 }
 
 function redirect(string $url): Response
