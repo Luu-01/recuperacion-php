@@ -6,6 +6,7 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 define('BASE_URL', '/RecuperacionesPHP/P6_5');
-define('HOME_URL', BASE_URL . 'productos/index.php');
+define('PUBLIC_URL', BASE_URL . '/public');
+define('HOME_URL', BASE_URL . '/productos');
 
 define('DEBUG', false);
