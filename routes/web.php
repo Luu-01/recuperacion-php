@@ -14,11 +14,12 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
 // Rutas de productos.
+// Las rutas fijas van antes que las dinámicas para evitar que /create se capture como {id}.
 Route::get('/', [ProductoController::class, 'index']);
 Route::get('/productos', [ProductoController::class, 'index']);
-Route::get('/productos/show', [ProductoController::class, 'show']);
 Route::get('/productos/create', [ProductoController::class, 'create']);
-Route::get('/productos/edit', [ProductoController::class, 'edit']);
-Route::post('/productos/store', [ProductoController::class, 'store']);
-Route::put('/productos/update', [ProductoController::class, 'update']);
-Route::delete('/productos/delete', [ProductoController::class, 'destroy']);
+Route::post('/productos', [ProductoController::class, 'store']);
+Route::get('/productos/{producto}', [ProductoController::class, 'show']);
+Route::get('/productos/{producto}/edit', [ProductoController::class, 'edit']);
+Route::put('/productos/{producto}', [ProductoController::class, 'update']);
+Route::delete('/productos/{producto}', [ProductoController::class, 'destroy']);
