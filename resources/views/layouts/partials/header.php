@@ -15,7 +15,7 @@ use App\Core\Auth\Auth; ?>
                     😁 <?= Auth::user()->nombre; ?>
                 </span>
 
-                <form action="<?= url('/logout.php') ?>" method="POST" class="d-inline">
+                <form action="<?= url('/logout') ?>" method="POST" class="d-inline">
                     <?= csrf() ?>
                     <button type="submit" class="btn btn-outline-light btn-sm">
                         Cerrar sesión
@@ -24,7 +24,7 @@ use App\Core\Auth\Auth; ?>
 
             <?php else: ?>
                 <a class="btn btn-light btn-sm"
-                    href="<?= url('/login.php') ?>">
+                    href="<?= url('/login') ?>">
                     Iniciar sesión
                 </a>
             <?php endif; ?>

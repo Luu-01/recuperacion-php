@@ -33,7 +33,7 @@ class Request
             $this->body = json_decode($raw, true) ?: [];
         }
 
-        // Unificar
+        // Unificar. El body JSON tiene prioridad sobre POST y GET.
         $this->data = array_merge($this->get, $this->post, $this->body);
     }
 
@@ -69,7 +69,7 @@ class Request
         return $this->post[$key] ?? $default;
     }
 
-    /** Devuelve GET + POST (POST tiene prioridad) */
+    /** Devuelve GET + POST + body JSON */
     public function input(?string $key = null, mixed $default = null): mixed
     {
         if ($key === null) return $this->data;
@@ -87,16 +87,28 @@ class Request
         return $this->server[$key] ?? $default;
     }
 
-    /** Devuelve el método HTTP real */
+    /**
+     * Devuelve el método HTTP real.
+     *
+     * HTML solo envía GET y POST desde formularios. Para poder registrar rutas
+     * PUT y DELETE, se permite simular el método con un input oculto:
+     * <input type="hidden" name="_method" value="PUT">
+     */
     public function method(): string
     {
-        return strtoupper($this->server['REQUEST_METHOD'] ?? 'GET');
+        $method = strtoupper($this->server['REQUEST_METHOD'] ?? 'GET');
+
+        if ($method === 'POST' && !empty($this->post['_method'])) {
+            return strtoupper((string) $this->post['_method']);
+        }
+
+        return $method;
     }
 
     /* -------------------------------------------------------------
         Información de URL
        ------------------------------------------------------------- */
-    
+
     /** Devuelve la URL solicitada, incluyendo el path y query string. */
     public function url(): string
     {
@@ -106,13 +118,30 @@ class Request
     /** Devuelve solo el path relativo (sin query string) */
     public function path(): string
     {
-        return parse_url($this->url(), PHP_URL_PATH);
+        return parse_url($this->url(), PHP_URL_PATH) ?: '/';
+    }
+
+    /**
+     * Devuelve la URI normalizada que usará el Router para hacer match.
+     * Elimina query string y BASE_URL.
+     */
+    public function uri(): string
+    {
+        $uri = $this->server['REQUEST_URI'] ?? '/';
+        $uri = explode('?', $uri)[0];
+
+        if (str_starts_with($uri, BASE_URL)) {
+            $uri = substr($uri, strlen(BASE_URL));
+        }
+
+        $uri = '/' . ltrim($uri, '/');
+        return $uri === '//' ? '/' : ($uri ?: '/');
     }
 
     /** Determina si la petición apunta a una ruta /api/ */
     public function isApiRoute(): bool
     {
-        return str_contains(request()->server('REQUEST_URI', ''), '/api/');
+        return str_contains($this->server('REQUEST_URI', ''), '/api/');
     }
 
     /**

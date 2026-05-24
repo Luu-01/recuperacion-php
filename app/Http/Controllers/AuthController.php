@@ -10,7 +10,7 @@ use App\Models\Usuario;
 
 class AuthController
 {
-    public function showRegistrationForm()
+    public function showRegistrationForm(Request $request): void
     {
         view('auth/register');
     }
@@ -20,7 +20,7 @@ class AuthController
         $nombre = $request->input('nombre', '');
         $correo = $request->input('correo', '');
         $plain = $request->input('clave', '');
-        
+
         $usuario = Usuario::where('correo', $correo)->first();
 
         if ($usuario) {
@@ -40,15 +40,15 @@ class AuthController
 
         Auth::login($usuario);
 
-        redirect('/productos/index.php')->send();
+        redirect(url('/productos'))->send();
     }
 
-    public function showLoginForm()
+    public function showLoginForm(Request $request): void
     {
         view('auth/login');
     }
 
-    public function login(Request $request)
+    public function login(Request $request): void
     {
         $credentials = [
             'correo' => $request->input('correo', ''),
@@ -57,18 +57,18 @@ class AuthController
 
         if (Auth::attempt($credentials)) {
             session()->regenerate();
-            redirect('/productos/index.php')->send();
+            redirect(url('/productos'))->send();
         }
 
         back()->with('error', 'Credenciales incorrectas')->withInput(['correo' => $credentials['correo']])->send();
     }
 
-    public function logout()
+    public function logout(Request $request): void
     {
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
 
-        redirect('/login.php')->send();
+        redirect(url('/login'))->send();
     }
 }
