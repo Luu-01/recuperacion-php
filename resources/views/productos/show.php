@@ -23,7 +23,7 @@
             <?= e($producto->categoria->nombre_categoria) ?>
         </p>
 
-        <a href="<?= url('/productos/index.php') ?>" class="btn btn-secondary mt-3">Volver</a>
+        <a href="<?= url('/productos') ?>" class="btn btn-secondary mt-3">Volver</a>
 
     </div>
 </div>
