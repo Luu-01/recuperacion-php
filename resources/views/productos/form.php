@@ -1,5 +1,8 @@
 <form method="POST" action="<?= $action ?>" class="mt-4">
     <?= csrf() ?>
+    <?php if (isset($producto)): ?>
+        <input type="hidden" name="_method" value="PUT">
+    <?php endif; ?>
     <input type="hidden" name="id" value="<?= e($producto->id ?? '') ?>">
 
     <!-- Nombre -->
@@ -86,5 +89,5 @@
             Guardar producto
         </button>
     </div>
-    
+
 </form>
