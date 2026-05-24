@@ -32,13 +32,8 @@ class ProductoController
         ));
     }
 
-    public function show(Request $request): void
+    public function show(Producto $producto): void
     {
-        $id = (int) $request->input('id');
-
-        $producto = Producto::find($id)
-            ?? throw new \Exception('Producto no encontrado');
-
         view('productos/show', compact('producto'));
     }
 
@@ -48,50 +43,28 @@ class ProductoController
         view('productos/create', compact('categorias'));
     }
 
-    public function store(Request $request): void
+    public function store(ProductoRequest $request): void
     {
-        // La ruta entrega siempre App\Core\Request. Para conservar las reglas
-        // existentes, se crea ProductoRequest solo en el punto de validación.
-        $validated = (new ProductoRequest())->validate();
-
-        Producto::create($validated);
+        Producto::create($request->validated());
         redirect(url('/productos'))->with('success', 'Producto guardado con éxito')->send();
     }
 
-    public function edit(Request $request): void
+    public function edit(Producto $producto): void
     {
-        $id = (int) $request->input('id');
-
-        $producto = Producto::find($id)
-            ?? throw new \Exception('Producto no encontrado');
-
         $categorias = Categoria::all();
-
         view('productos/edit', compact('producto', 'categorias'));
     }
 
-    public function update(Request $request): void
+    public function update(Producto $producto, ProductoRequest $request): void
     {
-        $id = (int) $request->input('id');
-
-        $producto = Producto::find($id)
-            ?? throw new \Exception('Producto no encontrado');
-
-        $validated = (new ProductoRequest())->validate();
-
-        $producto->fill($validated);
+        $producto->fill($request->validated());
         $producto->save();
 
         redirect(url('/productos'))->with('success', 'Producto actualizado con éxito')->send();
     }
 
-    public function destroy(Request $request): void
+    public function destroy(Producto $producto): void
     {
-        $id = (int) $request->input('id');
-
-        $producto = Producto::find($id)
-            ?? throw new \Exception('Producto no encontrado');
-
         $producto->delete();
 
         redirect(url('/productos'))->with('success', 'Producto eliminado con éxito')->send();
