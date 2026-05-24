@@ -55,13 +55,12 @@
                     <td><?= e($producto->categoria->nombre_categoria) ?></td>
 
                     <td>
-                        <a href="<?= url('/productos/show', ['id' => $producto->id]) ?>" class="btn btn-sm btn-info text-white">Ver</a>
-                        <a href="<?= url('/productos/edit', ['id' => $producto->id]) ?>" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="<?= url('/productos/' . $producto->id) ?>" class="btn btn-sm btn-info text-white">Ver</a>
+                        <a href="<?= url('/productos/' . $producto->id . '/edit') ?>" class="btn btn-sm btn-warning">Editar</a>
 
-                        <form action="<?= url('/productos/delete') ?>" method="post" class="d-inline">
+                        <form action="<?= url('/productos/' . $producto->id) ?>" method="post" class="d-inline">
                             <?= csrf() ?>
                             <input type="hidden" name="_method" value="DELETE">
-                            <input type="hidden" name="id" value="<?= e($producto->id) ?>">
                             <button
                                 type="submit"
                                 class="btn btn-sm btn-danger"
