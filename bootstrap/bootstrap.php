@@ -1,19 +1,22 @@
 <?php
 
-require_once __DIR__ . '/../app/Core/helpers/helper.php';
+declare(strict_types=1);
+
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../app/Core/helpers/helper.php';
+require_once __DIR__ . '/autoload.php';
 
 use App\Core\Auth\Auth;
 use App\Models\Usuario;
 
-spl_autoload_register(function ($class) {
-    $path = __DIR__ . '/../' . str_replace('\\', '/', $class) . '.php';
-    $path = lcfirst($path);
-
-    if (file_exists($path)) {
-        require_once $path;
-    }
-});
-
+// Inicializar la sesión y las variables flash.
 session()->initFlash();
+
+// Inicializar la autenticación.
 Auth::init(Usuario::class);
+
+// Crear la instancia del router.
+router();
+
+// Registrar las rutas de la aplicación.
+require __DIR__ . '/../routes/web.php';
