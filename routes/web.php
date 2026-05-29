@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Core\Routing\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductoController;
+use App\Http\Middlewares\AuthMiddleware;
+use App\Http\Middlewares\RoleMiddleware;
 
 // Rutas de autenticación.
 Route::get('/login', [AuthController::class, 'showLoginForm']);
@@ -14,12 +16,29 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
 // Rutas de productos.
-// Las rutas fijas van antes que las dinámicas para evitar que /create se capture como {id}.
+// Las rutas fijas se registran antes que las dinámicas para evitar capturas incorrectas.
 Route::get('/', [ProductoController::class, 'index']);
 Route::get('/productos', [ProductoController::class, 'index']);
-Route::get('/productos/create', [ProductoController::class, 'create']);
-Route::post('/productos', [ProductoController::class, 'store']);
+
+// Crear productos: usuario autenticado.
+Route::get('/productos/create', [ProductoController::class, 'create'])
+    ->middleware(AuthMiddleware::class);
+
+Route::post('/productos', [ProductoController::class, 'store'])
+    ->middleware(AuthMiddleware::class);
+
+// Lectura de productos: acceso libre.
 Route::get('/productos/{producto}', [ProductoController::class, 'show']);
-Route::get('/productos/{producto}/edit', [ProductoController::class, 'edit']);
-Route::put('/productos/{producto}', [ProductoController::class, 'update']);
-Route::delete('/productos/{producto}', [ProductoController::class, 'destroy']);
+
+// Modificar y borrar productos: usuario autenticado con rol admin.
+Route::get('/productos/{producto}/edit', [ProductoController::class, 'edit'])
+    ->middleware(AuthMiddleware::class)
+    ->middleware(RoleMiddleware::class, 'admin');
+
+Route::put('/productos/{producto}', [ProductoController::class, 'update'])
+    ->middleware(AuthMiddleware::class)
+    ->middleware(RoleMiddleware::class, 'admin');
+
+Route::delete('/productos/{producto}', [ProductoController::class, 'destroy'])
+    ->middleware(AuthMiddleware::class)
+    ->middleware(RoleMiddleware::class, 'admin');

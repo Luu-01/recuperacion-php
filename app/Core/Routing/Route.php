@@ -7,28 +7,28 @@ namespace App\Core\Routing;
 /**
  * Fachada estática para registrar rutas.
  *
- * Esta clase no resuelve peticiones. Solo delega el registro
- * en la instancia global del Router creada por el helper router().
+ * Delega el registro sobre la instancia global del Router y devuelve una
+ * RouteDefinition para permitir encadenamiento fluido de middlewares.
  */
 class Route
 {
-    public static function get(string $uri, array $action): void
+    public static function get(string $uri, array $action): RouteDefinition
     {
-        router()->get($uri, $action);
+        return router()->get($uri, $action);
     }
 
-    public static function post(string $uri, array $action): void
+    public static function post(string $uri, array $action): RouteDefinition
     {
-        router()->post($uri, $action);
+        return router()->post($uri, $action);
     }
 
-    public static function put(string $uri, array $action): void
+    public static function put(string $uri, array $action): RouteDefinition
     {
-        router()->put($uri, $action);
+        return router()->put($uri, $action);
     }
 
-    public static function delete(string $uri, array $action): void
+    public static function delete(string $uri, array $action): RouteDefinition
     {
-        router()->delete($uri, $action);
+        return router()->delete($uri, $action);
     }
 }

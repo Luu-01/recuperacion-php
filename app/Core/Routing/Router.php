@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Routing;
 
 use App\Core\FormRequest;
+use App\Core\Middleware\Middleware;
 use App\Core\Model;
 use App\Core\Request;
 use ReflectionMethod;
@@ -13,9 +14,8 @@ use RuntimeException;
 /**
  * Router de la aplicación.
  *
- * Registra rutas por método HTTP, permite rutas dinámicas como
- * /productos/{id} y resuelve automáticamente los argumentos del controlador
- * usando Reflection.
+ * Registra rutas por método HTTP, permite rutas dinámicas, ejecuta middlewares
+ * y resuelve automáticamente los argumentos del controlador usando Reflection.
  */
 class Router
 {
@@ -23,44 +23,60 @@ class Router
      * Estructura interna:
      * [
      *     'GET' => [
-     *         '/productos/create' => [ProductoController::class, 'create'],
-     *         '/productos/{id}' => [ProductoController::class, 'show'],
+     *         '/productos/create' => [
+     *             'action' => [ProductoController::class, 'create'],
+     *             'middlewares' => []
+     *         ],
      *     ],
-     *     'POST' => [...]
      * ]
      */
     private array $routes = [];
 
-    public function get(string $uri, array $action): void
+    /** @var array<int, array<int, mixed>> */
+    private array $globalMiddlewares = [];
+
+    public function get(string $uri, array $action): RouteDefinition
     {
-        $this->add('GET', $uri, $action);
+        return $this->add('GET', $uri, $action);
     }
 
-    public function post(string $uri, array $action): void
+    public function post(string $uri, array $action): RouteDefinition
     {
-        $this->add('POST', $uri, $action);
+        return $this->add('POST', $uri, $action);
     }
 
-    public function put(string $uri, array $action): void
+    public function put(string $uri, array $action): RouteDefinition
     {
-        $this->add('PUT', $uri, $action);
+        return $this->add('PUT', $uri, $action);
     }
 
-    public function delete(string $uri, array $action): void
+    public function delete(string $uri, array $action): RouteDefinition
     {
-        $this->add('DELETE', $uri, $action);
+        return $this->add('DELETE', $uri, $action);
     }
 
-    private function add(string $method, string $uri, array $action): void
+    public function addGlobalMiddleware(string $middlewareClass, ...$params): void
     {
-        $this->routes[$method][$this->normalize($uri)] = $action;
+        $this->globalMiddlewares[] = [$middlewareClass, ...$params];
+    }
+
+    private function add(string $method, string $uri, array $action): RouteDefinition
+    {
+        $uri = $this->normalize($uri);
+
+        $this->routes[$method][$uri] = [
+            'action' => $action,
+            'middlewares' => [],
+        ];
+
+        return new RouteDefinition($this->routes[$method][$uri]);
     }
 
     /**
      * Punto de entrada del router.
      *
      * Convierte cada ruta registrada a expresión regular, compara con la URI
-     * actual y extrae los parámetros dinámicos capturados desde la URL.
+     * actual, ejecuta middlewares y finalmente delega al controlador.
      */
     public function dispatch(Request $request): mixed
     {
@@ -69,17 +85,32 @@ class Router
 
         $routes = $this->routes[$method] ?? [];
 
-        foreach ($routes as $routeUri => $action) {
+        foreach ($routes as $routeUri => $definition) {
             $pattern = $this->toRegex($routeUri);
 
             if (preg_match($pattern, $uri, $matches)) {
                 array_shift($matches);
-                return $this->callAction($action, $request, $matches);
+
+                $this->runMiddlewares($this->globalMiddlewares, $request);
+                $this->runMiddlewares($definition['middlewares'], $request);
+
+                return $this->callAction($definition['action'], $request, $matches);
             }
         }
 
         http_response_code(404);
         throw new RuntimeException("404 Not Found: {$method} {$uri}");
+    }
+
+    private function runMiddlewares(array $middlewares, Request $request): void
+    {
+        foreach ($middlewares as $middlewareDefinition) {
+            $middlewareClass = array_shift($middlewareDefinition);
+
+            /** @var Middleware $middleware */
+            $middleware = new $middlewareClass();
+            $middleware->handle($request, ...$middlewareDefinition);
+        }
     }
 
     private function callAction(array $action, Request $request, array $routeParams): mixed
