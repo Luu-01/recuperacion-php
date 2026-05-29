@@ -1,21 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middlewares;
 
 use App\Core\Csrf;
+use App\Core\Middleware\Middleware;
+use App\Core\Request;
+use RuntimeException;
 
-class CsrfMiddleware
+class CsrfMiddleware implements Middleware
 {
-    public function handle(): void
+    public function handle(Request $request, ...$params): void
     {
-        if(request()->method() === 'GET' || request()->isApiRoute()) {
+        if (in_array($request->method(), ['GET', 'HEAD', 'OPTIONS'], true)) {
             return;
         }
 
-        $token = request()->input('_token');
-
-        if (!Csrf::validate($token)) {
-            throw new \Exception("Error de validación del token CSRF");
+        if (!Csrf::validate($request->input('_token'))) {
+            http_response_code(419);
+            throw new RuntimeException('Token CSRF no válido.');
         }
     }
 }
