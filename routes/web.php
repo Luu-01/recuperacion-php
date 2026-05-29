@@ -16,10 +16,9 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
 // Rutas de productos.
-// Lectura de productos: acceso libre.
+// Las rutas fijas se registran antes que las dinámicas para evitar capturas incorrectas.
 Route::get('/', [ProductoController::class, 'index']);
 Route::get('/productos', [ProductoController::class, 'index']);
-Route::get('/productos/{producto}', [ProductoController::class, 'show']);
 
 // Crear productos: usuario autenticado.
 Route::get('/productos/create', [ProductoController::class, 'create'])
@@ -27,6 +26,9 @@ Route::get('/productos/create', [ProductoController::class, 'create'])
 
 Route::post('/productos', [ProductoController::class, 'store'])
     ->middleware(AuthMiddleware::class);
+
+// Lectura de productos: acceso libre.
+Route::get('/productos/{producto}', [ProductoController::class, 'show']);
 
 // Modificar y borrar productos: usuario autenticado con rol admin.
 Route::get('/productos/{producto}/edit', [ProductoController::class, 'edit'])
